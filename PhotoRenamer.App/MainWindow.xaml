@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="clr-namespace:PhotoRenamer.App.Models"
         mc:Ignorable="d"
-        Title="Photo Renamer" Height="640" Width="960" MinHeight="520" MinWidth="760">
+        Title="Photo Renamer" Height="700" Width="1080" MinHeight="560" MinWidth="860">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -24,16 +25,54 @@
                 <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
 
-            <GroupBox Header="Files" Margin="0,0,8,0">
-                <ListBox x:Name="FileListBox"
-                         SelectionChanged="FileListBox_OnSelectionChanged"
-                         DisplayMemberPath="DisplayName" />
+            <GroupBox Header="Folders + Files" Margin="0,0,8,0">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="2*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="3*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBox x:Name="FileSearchTextBox"
+                             Height="30"
+                             Margin="0,0,0,8"
+                             TextChanged="FileSearchTextBox_OnTextChanged" />
+
+                    <CheckBox x:Name="IncludeSubdirectoriesCheckBox"
+                              Grid.Row="1"
+                              Content="Include files from all subdirectories"
+                              Margin="0,0,0,8"
+                              Checked="IncludeSubdirectoriesCheckBox_OnChanged"
+                              Unchecked="IncludeSubdirectoriesCheckBox_OnChanged" />
+
+                    <TreeView x:Name="FolderTreeView"
+                              Grid.Row="2"
+                              Margin="0,0,0,8"
+                              SelectedItemChanged="FolderTreeView_OnSelectedItemChanged">
+                        <TreeView.Resources>
+                            <HierarchicalDataTemplate DataType="{x:Type models:FolderNode}" ItemsSource="{Binding Children}">
+                                <TextBlock Text="{Binding Name}" />
+                            </HierarchicalDataTemplate>
+                        </TreeView.Resources>
+                    </TreeView>
+
+                    <TextBlock Grid.Row="3" Text="Files" FontWeight="SemiBold" Margin="0,0,0,6" />
+
+                    <ListBox x:Name="FileListBox"
+                             Grid.Row="4"
+                             SelectionChanged="FileListBox_OnSelectionChanged"
+                             DisplayMemberPath="DisplayName" />
+                </Grid>
             </GroupBox>
 
             <Grid Grid.Column="1" Margin="8,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="220" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
@@ -50,9 +89,28 @@
                     <Button Content="Rename + Next" Width="130" Margin="8,0,0,0" Click="RenameButton_OnClick" />
                 </StackPanel>
 
-                <TextBlock Grid.Row="2" Text="Quick People" FontWeight="SemiBold" Margin="0,0,0,8" />
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBox x:Name="DirectoryRenameTextBox" Width="280" Height="32" KeyDown="DirectoryRenameTextBox_OnKeyDown" />
+                    <Button Content="Rename Folder" Width="130" Margin="8,0,0,0" Click="RenameDirectoryButton_OnClick" />
+                </StackPanel>
 
-                <DockPanel Grid.Row="3">
+                <Border Grid.Row="3" BorderBrush="Gainsboro" BorderThickness="1" CornerRadius="4" Margin="0,0,0,12" Background="#FFF8F8F8">
+                    <Grid>
+                        <TextBlock x:Name="PhotoPreviewPlaceholder"
+                                   Text="Preview unavailable"
+                                   Foreground="DimGray"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center" />
+                        <Image x:Name="PhotoPreviewImage"
+                               Stretch="Uniform"
+                               Margin="6"
+                               Visibility="Collapsed" />
+                    </Grid>
+                </Border>
+
+                <TextBlock Grid.Row="4" Text="Quick People" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+                <DockPanel Grid.Row="5">
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBox x:Name="NewPersonTextBox" Width="240" Height="30" KeyDown="NewPersonTextBox_OnKeyDown" />
                         <Button Content="Add Person" Width="110" Margin="8,0,0,0" Click="AddPersonButton_OnClick" />
