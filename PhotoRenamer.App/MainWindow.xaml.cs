@@ -19,14 +19,19 @@ public partial class MainWindow : Window
 
     private readonly PeopleStore _peopleStore = new();
     private readonly ObservableCollection<PhotoFile> _files = [];
+    private readonly ObservableCollection<FolderNode> _folderTree = [];
+    private readonly List<PhotoFile> _scopeFiles = [];
     private readonly List<string> _people = [];
 
     private string? _currentFolder;
+    private string? _selectedFolderPath;
 
     public MainWindow()
     {
         InitializeComponent();
         FileListBox.ItemsSource = _files;
+        FolderTreeView.ItemsSource = _folderTree;
+        FileSearchTextBox.Text = string.Empty;
         LoadPeople();
     }
 
@@ -40,26 +45,174 @@ public partial class MainWindow : Window
 
         _currentFolder = dialog.FolderName;
         FolderPathText.Text = _currentFolder;
-        LoadFiles(_currentFolder);
+        BuildFolderTree(_currentFolder);
     }
 
-    private void LoadFiles(string folder)
+    private void BuildFolderTree(string rootFolder)
     {
-        _files.Clear();
+        _folderTree.Clear();
 
-        var files = Directory.EnumerateFiles(folder)
-            .Where(static file => ImageExtensions.Contains(Path.GetExtension(file)))
-            .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
-            .Select(file => new PhotoFile { FullPath = file });
+        var rootNode = CreateFolderNode(rootFolder);
+        _folderTree.Add(rootNode);
 
-        foreach (var file in files)
+        SelectFolderNode(rootFolder);
+    }
+
+    private static FolderNode CreateFolderNode(string folder)
+    {
+        var node = new FolderNode { FullPath = folder };
+
+        try
         {
-            _files.Add(file);
+            var subDirectories = Directory.EnumerateDirectories(folder)
+                .OrderBy(static path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase);
+
+            foreach (var subDirectory in subDirectories)
+            {
+                node.Children.Add(CreateFolderNode(subDirectory));
+            }
+        }
+        catch
+        {
+            // Ignore folders we cannot enumerate.
         }
 
-        StatusText.Text = _files.Count == 0
-            ? "No image files found in folder."
-            : $"Loaded {_files.Count} image file(s).";
+        return node;
+    }
+
+    private void SelectFolderNode(string folderPath)
+    {
+        var node = FindNodeByPath(_folderTree, folderPath);
+        if (node is null)
+        {
+            return;
+        }
+
+        FolderTreeView.SelectedItemChanged -= FolderTreeView_OnSelectedItemChanged;
+        var container = GetTreeViewItem(FolderTreeView, node);
+        if (container is not null)
+        {
+            ExpandAncestors(container);
+            container.IsSelected = true;
+            container.BringIntoView();
+        }
+
+        FolderTreeView.SelectedItemChanged += FolderTreeView_OnSelectedItemChanged;
+        _selectedFolderPath = node.FullPath;
+        DirectoryRenameTextBox.Text = node.Name;
+        LoadFilesForFolder(node.FullPath);
+    }
+
+    private static FolderNode? FindNodeByPath(IEnumerable<FolderNode> nodes, string fullPath)
+    {
+        foreach (var node in nodes)
+        {
+            if (string.Equals(node.FullPath, fullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return node;
+            }
+
+            var match = FindNodeByPath(node.Children, fullPath);
+            if (match is not null)
+            {
+                return match;
+            }
+        }
+
+        return null;
+    }
+
+    private static TreeViewItem? GetTreeViewItem(ItemsControl container, object item)
+    {
+        if (container.ItemContainerGenerator.ContainerFromItem(item) is TreeViewItem treeViewItem)
+        {
+            return treeViewItem;
+        }
+
+        foreach (var child in container.Items)
+        {
+            if (container.ItemContainerGenerator.ContainerFromItem(child) is not TreeViewItem childContainer)
+            {
+                continue;
+            }
+
+            childContainer.IsExpanded = true;
+            var result = GetTreeViewItem(childContainer, item);
+            if (result is not null)
+            {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    private static void ExpandAncestors(TreeViewItem item)
+    {
+        var parent = ItemsControl.ItemsControlFromItemContainer(item) as TreeViewItem;
+        while (parent is not null)
+        {
+            parent.IsExpanded = true;
+            parent = ItemsControl.ItemsControlFromItemContainer(parent) as TreeViewItem;
+        }
+    }
+
+    private void FolderTreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        if (FolderTreeView.SelectedItem is not FolderNode selectedFolder)
+        {
+            return;
+        }
+
+        _selectedFolderPath = selectedFolder.FullPath;
+        DirectoryRenameTextBox.Text = selectedFolder.Name;
+        LoadFilesForFolder(selectedFolder.FullPath);
+    }
+
+    private void IncludeSubdirectoriesCheckBox_OnChanged(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_selectedFolderPath))
+        {
+            return;
+        }
+
+        LoadFilesForFolder(_selectedFolderPath);
+    }
+
+    private void FileSearchTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
+    {
+        ApplyFileFilter();
+    }
+
+    private void LoadFilesForFolder(string folder)
+    {
+        _scopeFiles.Clear();
+
+        IEnumerable<string> files;
+        try
+        {
+            files = Directory.EnumerateFiles(
+                folder,
+                "*",
+                IncludeSubdirectoriesCheckBox.IsChecked == true ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Unable to load files: {ex.Message}";
+            _files.Clear();
+            return;
+        }
+
+        _scopeFiles.AddRange(files
+            .Where(static file => ImageExtensions.Contains(Path.GetExtension(file)))
+            .OrderBy(static path => path, StringComparer.OrdinalIgnoreCase)
+            .Select(file => new PhotoFile { FullPath = file }));
+
+        ApplyFileFilter();
+
+        StatusText.Text = _scopeFiles.Count == 0
+            ? "No image files found in selected folder scope."
+            : $"Loaded {_scopeFiles.Count} image file(s).";
 
         if (_files.Count > 0)
         {
@@ -73,6 +226,21 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ApplyFileFilter()
+    {
+        var query = FileSearchTextBox.Text.Trim();
+
+        var filtered = string.IsNullOrWhiteSpace(query)
+            ? _scopeFiles
+            : _scopeFiles.Where(file => file.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        _files.Clear();
+        foreach (var file in filtered)
+        {
+            _files.Add(file);
+        }
+    }
+
     private void FileListBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (FileListBox.SelectedItem is not PhotoFile selected)
@@ -83,13 +251,12 @@ public partial class MainWindow : Window
             return;
         }
 
-        CurrentFileText.Text = $"Current file: {selected.DisplayName}";
+        CurrentFileText.Text = $"Current file: {selected.FullPath}";
         RenameTextBox.Text = Path.GetFileNameWithoutExtension(selected.DisplayName);
         RenameTextBox.Focus();
         RenameTextBox.SelectAll();
         ShowPhotoPreview(selected.FullPath);
     }
-
 
     private void ShowPhotoPreview(string path)
     {
@@ -174,12 +341,23 @@ public partial class MainWindow : Window
         File.Move(selected.FullPath, destinationPath);
 
         var updated = new PhotoFile { FullPath = destinationPath };
+        ReplacePhotoInCollections(selected.FullPath, updated);
+
         var index = FileListBox.SelectedIndex;
         _files[index] = updated;
         FileListBox.SelectedIndex = index;
 
         StatusText.Text = $"Renamed to {updated.DisplayName}";
         MoveSelectionNext();
+    }
+
+    private void ReplacePhotoInCollections(string oldPath, PhotoFile updated)
+    {
+        var scopeIndex = _scopeFiles.FindIndex(file => string.Equals(file.FullPath, oldPath, StringComparison.OrdinalIgnoreCase));
+        if (scopeIndex >= 0)
+        {
+            _scopeFiles[scopeIndex] = updated;
+        }
     }
 
     private void MoveSelectionNext()
@@ -199,6 +377,108 @@ public partial class MainWindow : Window
         RenameTextBox.Focus();
         RenameTextBox.SelectAll();
         StatusText.Text = "Reached last file.";
+    }
+
+    private void RenameDirectoryButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        RenameSelectedDirectory();
+    }
+
+    private void DirectoryRenameTextBox_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+        {
+            return;
+        }
+
+        RenameSelectedDirectory();
+        e.Handled = true;
+    }
+
+    private void RenameSelectedDirectory()
+    {
+        if (string.IsNullOrWhiteSpace(_selectedFolderPath) || !Directory.Exists(_selectedFolderPath))
+        {
+            StatusText.Text = "Select a folder first.";
+            return;
+        }
+
+        var parentDirectory = Path.GetDirectoryName(_selectedFolderPath);
+        if (string.IsNullOrWhiteSpace(parentDirectory))
+        {
+            StatusText.Text = "Cannot rename this folder.";
+            return;
+        }
+
+        var requestedName = DirectoryRenameTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(requestedName))
+        {
+            StatusText.Text = "Folder name cannot be empty.";
+            return;
+        }
+
+        var safeName = string.Join("_", requestedName.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries)).Trim();
+        if (string.IsNullOrWhiteSpace(safeName))
+        {
+            StatusText.Text = "Folder name only had invalid characters.";
+            return;
+        }
+
+        var destinationPath = Path.Combine(parentDirectory, safeName);
+        if (string.Equals(destinationPath, _selectedFolderPath, StringComparison.OrdinalIgnoreCase))
+        {
+            StatusText.Text = "Folder name is unchanged.";
+            return;
+        }
+
+        if (Directory.Exists(destinationPath))
+        {
+            StatusText.Text = "A folder with that name already exists.";
+            return;
+        }
+
+        Directory.Move(_selectedFolderPath, destinationPath);
+
+        var prependPrefix = Path.GetFileName(parentDirectory);
+        var directFiles = Directory.EnumerateFiles(destinationPath, "*", SearchOption.TopDirectoryOnly)
+            .Where(static file => ImageExtensions.Contains(Path.GetExtension(file)));
+
+        var renamedCount = 0;
+        var skippedCount = 0;
+
+        foreach (var file in directFiles)
+        {
+            var currentNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
+            var newNameWithoutExtension = currentNameWithoutExtension.StartsWith(prependPrefix + " ", StringComparison.OrdinalIgnoreCase)
+                ? currentNameWithoutExtension
+                : $"{prependPrefix} {currentNameWithoutExtension}";
+
+            var targetPath = Path.Combine(destinationPath, newNameWithoutExtension + Path.GetExtension(file));
+            if (string.Equals(targetPath, file, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (File.Exists(targetPath))
+            {
+                skippedCount += 1;
+                continue;
+            }
+
+            File.Move(file, targetPath);
+            renamedCount += 1;
+        }
+
+        if (string.Equals(_currentFolder, _selectedFolderPath, StringComparison.OrdinalIgnoreCase))
+        {
+            _currentFolder = destinationPath;
+            FolderPathText.Text = destinationPath;
+        }
+
+        BuildFolderTree(_currentFolder ?? destinationPath);
+        SelectFolderNode(destinationPath);
+
+        StatusText.Text = $"Renamed folder. Updated {renamedCount} direct file(s); skipped {skippedCount}.";
     }
 
     private void LoadPeople()
