@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace PhotoRenamer.App.Models;
 
 public sealed class PhotoFile

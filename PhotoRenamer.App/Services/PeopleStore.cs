@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text.Json;
 
 namespace PhotoRenamer.App.Services;
@@ -35,7 +36,7 @@ public sealed class PeopleStore
             .Select(static p => p.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(static p => p)
-            .ToList() ?? Array.Empty<string>();
+            .ToArray() ?? Array.Empty<string>();
     }
 
     public void Save(IReadOnlyCollection<string> people)
