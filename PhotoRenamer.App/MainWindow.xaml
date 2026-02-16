@@ -71,9 +71,9 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="220" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="220" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="220" />
                     <RowDefinition Height="Auto" />
@@ -107,7 +107,8 @@
                         <Image x:Name="PhotoPreviewImage"
                                Stretch="Uniform"
                                Margin="6"
-                               Visibility="Collapsed" />
+                               Visibility="Collapsed"
+                               Height="200"/>
                     </Grid>
                 </Border>
 
