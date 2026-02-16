@@ -77,6 +77,9 @@ public partial class MainWindow : Window
     {
         if (FileListBox.SelectedItem is not PhotoFile selected)
         {
+            CurrentFileText.Text = "Select a file to rename";
+            RenameTextBox.Text = string.Empty;
+            ClearPhotoPreview("Preview unavailable");
             return;
         }
 
@@ -173,6 +176,7 @@ public partial class MainWindow : Window
         var updated = new PhotoFile { FullPath = destinationPath };
         var index = FileListBox.SelectedIndex;
         _files[index] = updated;
+        FileListBox.SelectedIndex = index;
 
         StatusText.Text = $"Renamed to {updated.DisplayName}";
         MoveSelectionNext();
@@ -180,14 +184,21 @@ public partial class MainWindow : Window
 
     private void MoveSelectionNext()
     {
+        if (_files.Count == 0)
+        {
+            return;
+        }
+
         if (FileListBox.SelectedIndex < _files.Count - 1)
         {
             FileListBox.SelectedIndex += 1;
+            return;
         }
-        else
-        {
-            StatusText.Text = "Reached last file.";
-        }
+
+        FileListBox.SelectedIndex = _files.Count - 1;
+        RenameTextBox.Focus();
+        RenameTextBox.SelectAll();
+        StatusText.Text = "Reached last file.";
     }
 
     private void LoadPeople()
