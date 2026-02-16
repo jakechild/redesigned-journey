@@ -439,7 +439,7 @@ public partial class MainWindow : Window
 
         Directory.Move(_selectedFolderPath, destinationPath);
 
-        var prependPrefix = Path.GetFileName(parentDirectory);
+        var prependPrefix = Path.GetFileName(destinationPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         var directFiles = Directory.EnumerateFiles(destinationPath, "*", SearchOption.TopDirectoryOnly)
             .Where(static file => ImageExtensions.Contains(Path.GetExtension(file)));
 

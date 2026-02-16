@@ -75,6 +75,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="220" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="220" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
