@@ -254,8 +254,34 @@ public partial class MainWindow : Window
         CurrentFileText.Text = $"Current file: {selected.FullPath}";
         RenameTextBox.Text = Path.GetFileNameWithoutExtension(selected.DisplayName);
         RenameTextBox.Focus();
-        RenameTextBox.SelectAll();
+        SelectEditablePortionForRename(selected);
         ShowPhotoPreview(selected.FullPath);
+    }
+
+    private void SelectEditablePortionForRename(PhotoFile selected)
+    {
+        var fullName = RenameTextBox.Text;
+        if (string.IsNullOrWhiteSpace(fullName))
+        {
+            RenameTextBox.SelectAll();
+            return;
+        }
+
+        var directoryName = Path.GetFileName(selected.DirectoryPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        if (string.IsNullOrWhiteSpace(directoryName))
+        {
+            RenameTextBox.SelectAll();
+            return;
+        }
+
+        var prefix = directoryName + " ";
+        if (!fullName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) || fullName.Length == prefix.Length)
+        {
+            RenameTextBox.SelectAll();
+            return;
+        }
+
+        RenameTextBox.Select(prefix.Length, fullName.Length - prefix.Length);
     }
 
     private void ShowPhotoPreview(string path)
