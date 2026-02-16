@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using PhotoRenamer.App.Models;
 using PhotoRenamer.App.Services;
@@ -68,6 +69,7 @@ public partial class MainWindow : Window
         {
             CurrentFileText.Text = "Select a file to rename";
             RenameTextBox.Text = string.Empty;
+            ClearPhotoPreview("Preview unavailable");
         }
     }
 
@@ -82,6 +84,37 @@ public partial class MainWindow : Window
         RenameTextBox.Text = Path.GetFileNameWithoutExtension(selected.DisplayName);
         RenameTextBox.Focus();
         RenameTextBox.SelectAll();
+        ShowPhotoPreview(selected.FullPath);
+    }
+
+
+    private void ShowPhotoPreview(string path)
+    {
+        try
+        {
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.UriSource = new Uri(path);
+            image.EndInit();
+            image.Freeze();
+
+            PhotoPreviewImage.Source = image;
+            PhotoPreviewImage.Visibility = Visibility.Visible;
+            PhotoPreviewPlaceholder.Visibility = Visibility.Collapsed;
+        }
+        catch
+        {
+            ClearPhotoPreview("Preview unavailable");
+        }
+    }
+
+    private void ClearPhotoPreview(string message)
+    {
+        PhotoPreviewImage.Source = null;
+        PhotoPreviewImage.Visibility = Visibility.Collapsed;
+        PhotoPreviewPlaceholder.Text = message;
+        PhotoPreviewPlaceholder.Visibility = Visibility.Visible;
     }
 
     private void RenameButton_OnClick(object sender, RoutedEventArgs e)

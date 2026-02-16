@@ -34,6 +34,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="220" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
@@ -50,9 +51,23 @@
                     <Button Content="Rename + Next" Width="130" Margin="8,0,0,0" Click="RenameButton_OnClick" />
                 </StackPanel>
 
-                <TextBlock Grid.Row="2" Text="Quick People" FontWeight="SemiBold" Margin="0,0,0,8" />
+                <Border Grid.Row="2" BorderBrush="Gainsboro" BorderThickness="1" CornerRadius="4" Margin="0,0,0,12" Background="#FFF8F8F8">
+                    <Grid>
+                        <TextBlock x:Name="PhotoPreviewPlaceholder"
+                                   Text="Preview unavailable"
+                                   Foreground="DimGray"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center" />
+                        <Image x:Name="PhotoPreviewImage"
+                               Stretch="Uniform"
+                               Margin="6"
+                               Visibility="Collapsed" />
+                    </Grid>
+                </Border>
 
-                <DockPanel Grid.Row="3">
+                <TextBlock Grid.Row="3" Text="Quick People" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+                <DockPanel Grid.Row="4">
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBox x:Name="NewPersonTextBox" Width="240" Height="30" KeyDown="NewPersonTextBox_OnKeyDown" />
                         <Button Content="Add Person" Width="110" Margin="8,0,0,0" Click="AddPersonButton_OnClick" />
