@@ -1,0 +1,74 @@
+<Window x:Class="PhotoRenamer.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Photo Renamer" Height="640" Width="960" MinHeight="520" MinWidth="760">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+            <Button Content="Open Folder" Width="120" Click="OpenFolder_OnClick" />
+            <TextBlock Text="   " />
+            <TextBlock x:Name="FolderPathText" VerticalAlignment="Center" Foreground="DimGray" Text="No folder selected" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Header="Files" Margin="0,0,8,0">
+                <ListBox x:Name="FileListBox"
+                         SelectionChanged="FileListBox_OnSelectionChanged"
+                         DisplayMemberPath="DisplayName" />
+            </GroupBox>
+
+            <Grid Grid.Column="1" Margin="8,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock x:Name="CurrentFileText"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,12"
+                           Text="Select a file to rename" />
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBox x:Name="RenameTextBox" Width="280" Height="32" KeyDown="RenameTextBox_OnKeyDown" />
+                    <Button Content="Rename + Next" Width="130" Margin="8,0,0,0" Click="RenameButton_OnClick" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="2" Text="Quick People" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+                <DockPanel Grid.Row="3">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBox x:Name="NewPersonTextBox" Width="240" Height="30" KeyDown="NewPersonTextBox_OnKeyDown" />
+                        <Button Content="Add Person" Width="110" Margin="8,0,0,0" Click="AddPersonButton_OnClick" />
+                    </StackPanel>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <WrapPanel x:Name="PeopleButtonsPanel" />
+                    </ScrollViewer>
+                </DockPanel>
+            </Grid>
+        </Grid>
+
+        <TextBlock Grid.Row="2"
+                   x:Name="StatusText"
+                   Foreground="DimGray"
+                   Margin="0,12,0,0"
+                   Text="Ready" />
+    </Grid>
+</Window>
