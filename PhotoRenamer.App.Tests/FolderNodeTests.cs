@@ -1,4 +1,5 @@
 using PhotoRenamer.App.Models;
+using Xunit;
 
 namespace PhotoRenamer.App.Tests;
 

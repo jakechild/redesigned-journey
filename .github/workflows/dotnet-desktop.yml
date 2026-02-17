@@ -57,7 +57,7 @@ jobs:
 
     env:
       Solution_Name: PhotoRenamer.sln
-      Test_Project_Path: your-test-project-path                 # Replace with the path to your test project, i.e. MyWpfApp.Tests\MyWpfApp.Tests.csproj.
+      Test_Project_Path: PhotoRenamer.App.tests\PhotoRenamer.App.Tests.csproj
       Wap_Project_Directory: PhotoRenamer.App
       Wap_Project_Path: PhotoRenamer.App\PhotoRenamer.App.csproj
 
