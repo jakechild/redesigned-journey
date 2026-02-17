@@ -1,8 +1,11 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using PhotoRenamer.App.Models;
@@ -25,14 +28,123 @@ public partial class MainWindow : Window
 
     private string? _currentFolder;
     private string? _selectedFolderPath;
+    private bool _windowLoaded;
+    private bool _isApplyingSystemTheme;
+
+    private const int DwmUseImmersiveDarkMode = 20;
+    private const int DwmCaptionColor = 35;
+    private const int DwmTextColor = 36;
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
 
     public MainWindow()
     {
         InitializeComponent();
+        Loaded += MainWindow_OnLoaded;
+        Closed += MainWindow_OnClosed;
+        ApplySystemThemePreference();
         FileListBox.ItemsSource = _files;
         FolderTreeView.ItemsSource = _folderTree;
         FileSearchTextBox.Text = string.Empty;
         LoadPeople();
+    }
+
+    private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        _windowLoaded = true;
+        SystemEvents.UserPreferenceChanged += SystemEvents_OnUserPreferenceChanged;
+        ApplyTitleBarTheme(DarkModeCheckBox.IsChecked == true);
+    }
+
+
+    private void MainWindow_OnClosed(object? sender, EventArgs e)
+    {
+        SystemEvents.UserPreferenceChanged -= SystemEvents_OnUserPreferenceChanged;
+    }
+
+    private void SystemEvents_OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+    {
+        if (e.Category != UserPreferenceCategory.General)
+        {
+            return;
+        }
+
+        Dispatcher.Invoke(ApplySystemThemePreference);
+    }
+
+    private void ApplySystemThemePreference()
+    {
+        var prefersDarkMode = GetSystemPrefersDarkMode();
+
+        _isApplyingSystemTheme = true;
+        DarkModeCheckBox.IsChecked = prefersDarkMode;
+        _isApplyingSystemTheme = false;
+
+        ApplyTheme(prefersDarkMode);
+    }
+
+    private static bool GetSystemPrefersDarkMode()
+    {
+        const string personalizeKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+        const string appsUseLightThemeValueName = "AppsUseLightTheme";
+
+        var value = Registry.GetValue($@"HKEY_CURRENT_USER\{personalizeKeyPath}", appsUseLightThemeValueName, 1);
+        return value is int lightThemeEnabled && lightThemeEnabled == 0;
+    }
+
+    private void ThemeToggleCheckBox_OnChanged(object sender, RoutedEventArgs e)
+    {
+        if (_isApplyingSystemTheme)
+        {
+            return;
+        }
+
+        ApplyTheme(DarkModeCheckBox.IsChecked == true);
+    }
+
+    private void ApplyTheme(bool isDarkMode)
+    {
+        SetBrushColor("WindowBackgroundBrush", isDarkMode ? "#FF1E1E1E" : "#FFF7F7F7");
+        SetBrushColor("SurfaceBrush", isDarkMode ? "#FF2A2A2A" : "#FFFFFFFF");
+        SetBrushColor("SurfaceAltBrush", isDarkMode ? "#FF303030" : "#FFF8F8F8");
+        SetBrushColor("BorderBrush", isDarkMode ? "#FF474747" : "#FFD5D5D5");
+        SetBrushColor("PrimaryTextBrush", isDarkMode ? "#FFF1F1F1" : "#FF1F1F1F");
+        SetBrushColor("SecondaryTextBrush", isDarkMode ? "#FFC7C7C7" : "#FF5F5F5F");
+
+        if (_windowLoaded)
+        {
+            ApplyTitleBarTheme(isDarkMode);
+        }
+    }
+
+    private void SetBrushColor(string brushKey, string hexColor)
+    {
+        var color = (Color)ColorConverter.ConvertFromString(hexColor);
+        Resources[brushKey] = new SolidColorBrush(color);
+    }
+
+    private void ApplyTitleBarTheme(bool isDarkMode)
+    {
+        var windowHandle = new WindowInteropHelper(this).Handle;
+        if (windowHandle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        var darkModeValue = isDarkMode ? 1 : 0;
+        DwmSetWindowAttribute(windowHandle, DwmUseImmersiveDarkMode, ref darkModeValue, sizeof(int));
+
+        var captionColor = ToColorRef((Color)ColorConverter.ConvertFromString(isDarkMode ? "#FF1E1E1E" : "#FFF7F7F7"));
+        DwmSetWindowAttribute(windowHandle, DwmCaptionColor, ref captionColor, sizeof(int));
+
+        var textColor = ToColorRef((Color)ColorConverter.ConvertFromString(isDarkMode ? "#FFF1F1F1" : "#FF1F1F1F"));
+        DwmSetWindowAttribute(windowHandle, DwmTextColor, ref textColor, sizeof(int));
+    }
+
+    private static int ToColorRef(Color color)
+    {
+        return color.R | (color.G << 8) | (color.B << 16);
     }
 
     private void OpenFolder_OnClick(object sender, RoutedEventArgs e)
