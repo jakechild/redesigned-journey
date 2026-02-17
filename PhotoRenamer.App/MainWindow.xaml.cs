@@ -29,7 +29,7 @@ public partial class MainWindow : Window
     private readonly List<string> _people = [];
     private readonly UpdateService _updateService = new();
 
-    private const string GitHubRepository = "YOUR_ORG/YOUR_REPO";
+    private const string GitHubRepository = "jakechild/redesigned-journey";
 
     private string? _currentFolder;
     private string? _selectedFolderPath;
