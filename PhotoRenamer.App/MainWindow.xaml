@@ -94,21 +94,26 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="2*" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="3*" />
                     </Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <TextBox x:Name="FileSearchTextBox"
+                        <TextBlock Grid.Column="0" Text="Filter" FontWeight="SemiBold" Margin="0,0,6,6" VerticalAlignment="Center"/>
+
+                        <TextBox x:Name="FileSearchTextBox"
+                             Grid.Column="1"
                              Height="30"
                              Margin="0,0,0,8"
                              TextChanged="FileSearchTextBox_OnTextChanged" />
 
-                    <CheckBox x:Name="IncludeSubdirectoriesCheckBox"
-                              Grid.Row="1"
-                              Content="Include files from all subdirectories"
-                              Margin="0,0,0,8"
-                              Checked="IncludeSubdirectoriesCheckBox_OnChanged"
-                              Unchecked="IncludeSubdirectoriesCheckBox_OnChanged" />
-
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="Folders" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    
                     <TreeView x:Name="FolderTreeView"
                               Grid.Row="2"
                               Margin="0,0,0,8"
@@ -120,10 +125,26 @@
                         </TreeView.Resources>
                     </TreeView>
 
-                    <TextBlock Grid.Row="3" Text="Files" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <Grid Grid.Row="3" Width="Auto">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBlock Grid.Column="0" Text="Files" FontWeight="SemiBold" Margin="0,0,0,6"/>
+
+                        <CheckBox x:Name="IncludeSubdirectoriesCheckBox"
+                                  Grid.Column="1"
+                                  Content="Include files from all subdirectories"
+                                  Checked="IncludeSubdirectoriesCheckBox_OnChanged"
+                                  Unchecked="IncludeSubdirectoriesCheckBox_OnChanged"
+                                  HorizontalAlignment="Right"
+                                  />
+                    
+                    </Grid>
 
                     <ListBox x:Name="FileListBox"
-                             Grid.Row="4"
+                             Grid.Row="5"
                              SelectionChanged="FileListBox_OnSelectionChanged"
                              DisplayMemberPath="DisplayName" />
                 </Grid>
