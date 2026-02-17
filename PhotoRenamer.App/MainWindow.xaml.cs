@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,6 +27,9 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<FolderNode> _folderTree = [];
     private readonly List<PhotoFile> _scopeFiles = [];
     private readonly List<string> _people = [];
+    private readonly UpdateService _updateService = new();
+
+    private const string GitHubRepository = "YOUR_ORG/YOUR_REPO";
 
     private string? _currentFolder;
     private string? _selectedFolderPath;
@@ -47,14 +52,17 @@ public partial class MainWindow : Window
         FileListBox.ItemsSource = _files;
         FolderTreeView.ItemsSource = _folderTree;
         FileSearchTextBox.Text = string.Empty;
+        var appVersion = GetCurrentVersion();
+        VersionText.Text = $"Version {appVersion.Major}.{appVersion.Minor}.{appVersion.Build}";
         LoadPeople();
     }
 
-    private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+    private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
         _windowLoaded = true;
         SystemEvents.UserPreferenceChanged += SystemEvents_OnUserPreferenceChanged;
         ApplyTitleBarTheme(DarkModeCheckBox.IsChecked == true);
+        await CheckForUpdatesAsync(false);
     }
 
 
@@ -691,6 +699,84 @@ public partial class MainWindow : Window
         NewPersonTextBox.Text = string.Empty;
         RenderPeopleButtons();
         StatusText.Text = $"Added '{person}' to quick list.";
+    }
+
+    private async void CheckUpdatesButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        await CheckForUpdatesAsync(true);
+    }
+
+    private static Version GetCurrentVersion()
+    {
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        return version is null ? new Version(0, 0, 0) : new Version(version.Major, version.Minor, Math.Max(version.Build, 0));
+    }
+
+    private async Task CheckForUpdatesAsync(bool userInitiated)
+    {
+        if (GitHubRepository.Contains("YOUR_ORG", StringComparison.OrdinalIgnoreCase))
+        {
+            CheckUpdatesButton.IsEnabled = false;
+            if (userInitiated)
+            {
+                MessageBox.Show(this,
+                    "Update checks are not configured yet. Set GitHubRepository in MainWindow.xaml.cs to your GitHub owner/repo.",
+                    "Updates not configured",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+
+            return;
+        }
+
+        try
+        {
+            var currentVersion = GetCurrentVersion();
+            var latestRelease = await _updateService.GetLatestReleaseAsync(GitHubRepository);
+            if (latestRelease is null)
+            {
+                if (userInitiated)
+                {
+                    StatusText.Text = "Unable to check for updates right now.";
+                }
+
+                return;
+            }
+
+            if (!UpdateService.IsUpdateAvailable(currentVersion, latestRelease.Version))
+            {
+                if (userInitiated)
+                {
+                    MessageBox.Show(this, "You already have the latest version.", "No updates found", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+
+                return;
+            }
+
+            var result = MessageBox.Show(this,
+                $"A newer version ({latestRelease.TagName}) is available.\n\nDo you want to open the release page now?",
+                "Update available",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes || string.IsNullOrWhiteSpace(latestRelease.HtmlUrl))
+            {
+                return;
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = latestRelease.HtmlUrl,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            if (userInitiated)
+            {
+                StatusText.Text = $"Update check failed: {ex.Message}";
+            }
+        }
     }
 
     private void RenderPeopleButtons()

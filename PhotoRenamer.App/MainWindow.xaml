@@ -210,10 +210,20 @@
             </Grid>
         </Grid>
 
-        <TextBlock Grid.Row="2"
-                   x:Name="StatusText"
-                   Foreground="{DynamicResource SecondaryTextBrush}"
-                   Margin="0,12,0,0"
-                   Text="Ready" />
+        <Grid Grid.Row="2" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="StatusText"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
+                       Text="Ready" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button x:Name="CheckUpdatesButton" Content="Check for updates" Margin="0,0,8,0" Click="CheckUpdatesButton_OnClick" />
+                <TextBlock x:Name="VersionText" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" Text="Version" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
