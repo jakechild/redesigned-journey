@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using PhotoRenamer.App.Models;
@@ -29,10 +30,33 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        ApplyTheme(false);
         FileListBox.ItemsSource = _files;
         FolderTreeView.ItemsSource = _folderTree;
         FileSearchTextBox.Text = string.Empty;
         LoadPeople();
+    }
+
+
+    private void ThemeToggleCheckBox_OnChanged(object sender, RoutedEventArgs e)
+    {
+        ApplyTheme(DarkModeCheckBox.IsChecked == true);
+    }
+
+    private void ApplyTheme(bool isDarkMode)
+    {
+        SetBrushColor("WindowBackgroundBrush", isDarkMode ? "#FF1E1E1E" : "#FFF7F7F7");
+        SetBrushColor("SurfaceBrush", isDarkMode ? "#FF2A2A2A" : "#FFFFFFFF");
+        SetBrushColor("SurfaceAltBrush", isDarkMode ? "#FF303030" : "#FFF8F8F8");
+        SetBrushColor("BorderBrush", isDarkMode ? "#FF474747" : "#FFD5D5D5");
+        SetBrushColor("PrimaryTextBrush", isDarkMode ? "#FFF1F1F1" : "#FF1F1F1F");
+        SetBrushColor("SecondaryTextBrush", isDarkMode ? "#FFC7C7C7" : "#FF5F5F5F");
+    }
+
+    private void SetBrushColor(string brushKey, string hexColor)
+    {
+        var color = (Color)ColorConverter.ConvertFromString(hexColor);
+        Resources[brushKey] = new SolidColorBrush(color);
     }
 
     private void OpenFolder_OnClick(object sender, RoutedEventArgs e)
