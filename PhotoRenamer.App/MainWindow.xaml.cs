@@ -55,10 +55,8 @@ public partial class MainWindow : Window
 
     private void SetBrushColor(string brushKey, string hexColor)
     {
-        if (Resources[brushKey] is SolidColorBrush brush)
-        {
-            brush.Color = (Color)ColorConverter.ConvertFromString(hexColor);
-        }
+        var color = (Color)ColorConverter.ConvertFromString(hexColor);
+        Resources[brushKey] = new SolidColorBrush(color);
     }
 
     private void OpenFolder_OnClick(object sender, RoutedEventArgs e)
