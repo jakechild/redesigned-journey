@@ -12,4 +12,6 @@
       <_Parameter1>PhotoRenamer.App.Tests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+
+  <Import Project="..\Directory.Build.props" Condition="Exists('..\Directory.Build.props')" />
 </Project>

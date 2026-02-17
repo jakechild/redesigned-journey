@@ -29,7 +29,7 @@ public partial class MainWindow : Window
     private readonly List<string> _people = [];
     private readonly UpdateService _updateService = new();
 
-    private const string GitHubRepository = "jakechild/redesigned-journey";
+    private const string GitHubRepository = "YOUR_ORG/YOUR_REPO";
 
     private string? _currentFolder;
     private string? _selectedFolderPath;
@@ -714,6 +714,11 @@ public partial class MainWindow : Window
 
     private async Task CheckForUpdatesAsync(bool userInitiated)
     {
+        if (!userInitiated && IsDevelopmentBuild())
+        {
+            return;
+        }
+
         if (GitHubRepository.Contains("YOUR_ORG", StringComparison.OrdinalIgnoreCase))
         {
             CheckUpdatesButton.IsEnabled = false;
@@ -777,6 +782,15 @@ public partial class MainWindow : Window
                 StatusText.Text = $"Update check failed: {ex.Message}";
             }
         }
+    }
+
+    private static bool IsDevelopmentBuild()
+    {
+#if DEBUG
+        return true;
+#else
+        return false;
+#endif
     }
 
     private void RenderPeopleButtons()

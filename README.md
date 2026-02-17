@@ -31,3 +31,6 @@ dotnet run --project PhotoRenamer.App/PhotoRenamer.App.csproj
 
 - The app displays its current version in the bottom-right corner.
 - The app can check GitHub for newer releases (startup check + **Check for updates** button). To enable this, set `GitHubRepository` in `PhotoRenamer.App/MainWindow.xaml.cs` to your `owner/repo`.
+
+- The release workflow also writes the new version back to `Directory.Build.props` so local Visual Studio builds stay aligned with the latest GitHub release version.
+- Automatic update checks are skipped for Debug builds to avoid noisy prompts during local development; use **Check for updates** for manual checks.

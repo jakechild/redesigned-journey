@@ -1,5 +1,4 @@
 using PhotoRenamer.App.Services;
-using Xunit;
 
 namespace PhotoRenamer.App.Tests;
 
