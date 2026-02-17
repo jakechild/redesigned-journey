@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:PhotoRenamer.App.Models"
         mc:Ignorable="d"
-        Title="Photo Renamer" Height="700" Width="1080" MinHeight="560" MinWidth="860">
+        Title="Photo Renamer" Height="700" Width="1080" MinHeight="560" MinWidth="860"
+        Background="{DynamicResource WindowBackgroundBrush}">
     <Window.Resources>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFF7F7F7" />
         <SolidColorBrush x:Key="SurfaceBrush" Color="White" />
@@ -103,21 +104,26 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="2*" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="3*" />
                     </Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <TextBox x:Name="FileSearchTextBox"
+                        <TextBlock Grid.Column="0" Text="Filter" FontWeight="SemiBold" Margin="0,0,6,6" VerticalAlignment="Center"/>
+
+                        <TextBox x:Name="FileSearchTextBox"
+                             Grid.Column="1"
                              Height="30"
                              Margin="0,0,0,8"
                              TextChanged="FileSearchTextBox_OnTextChanged" />
 
-                    <CheckBox x:Name="IncludeSubdirectoriesCheckBox"
-                              Grid.Row="1"
-                              Content="Include files from all subdirectories"
-                              Margin="0,0,0,8"
-                              Checked="IncludeSubdirectoriesCheckBox_OnChanged"
-                              Unchecked="IncludeSubdirectoriesCheckBox_OnChanged" />
-
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="Folders" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    
                     <TreeView x:Name="FolderTreeView"
                               Grid.Row="2"
                               Margin="0,0,0,8"
@@ -129,10 +135,26 @@
                         </TreeView.Resources>
                     </TreeView>
 
-                    <TextBlock Grid.Row="3" Text="Files" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <Grid Grid.Row="3" Width="Auto">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBlock Grid.Column="0" Text="Files" FontWeight="SemiBold" Margin="0,0,0,6"/>
+
+                        <CheckBox x:Name="IncludeSubdirectoriesCheckBox"
+                                  Grid.Column="1"
+                                  Content="Include files from all subdirectories"
+                                  Checked="IncludeSubdirectoriesCheckBox_OnChanged"
+                                  Unchecked="IncludeSubdirectoriesCheckBox_OnChanged"
+                                  HorizontalAlignment="Right"
+                                  />
+                    
+                    </Grid>
 
                     <ListBox x:Name="FileListBox"
-                             Grid.Row="4"
+                             Grid.Row="5"
                              SelectionChanged="FileListBox_OnSelectionChanged"
                              DisplayMemberPath="DisplayName" />
                 </Grid>
@@ -179,7 +201,7 @@
                                Stretch="Uniform"
                                Margin="6"
                                Visibility="Collapsed"
-                               Height="200"/>
+                               MaxHeight="300"/>
                     </Grid>
                 </Border>
 
@@ -198,10 +220,20 @@
             </Grid>
         </Grid>
 
-        <TextBlock Grid.Row="2"
-                   x:Name="StatusText"
-                   Foreground="{DynamicResource SecondaryTextBrush}"
-                   Margin="0,12,0,0"
-                   Text="Ready" />
+        <Grid Grid.Row="2" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="StatusText"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
+                       Text="Ready" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button x:Name="CheckUpdatesButton" Content="Check for updates" Margin="0,0,8,0" Click="CheckUpdatesButton_OnClick" />
+                <TextBlock x:Name="VersionText" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" Text="Version" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

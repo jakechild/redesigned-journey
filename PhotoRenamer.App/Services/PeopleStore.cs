@@ -22,6 +22,19 @@ public sealed class PeopleStore
         _filePath = Path.Combine(appDataFolder, "people.json");
     }
 
+    internal PeopleStore(string filePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+
+        var directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        _filePath = filePath;
+    }
+
     public IReadOnlyList<string> Load()
     {
         if (!File.Exists(_filePath))
