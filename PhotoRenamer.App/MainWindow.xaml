@@ -5,8 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:PhotoRenamer.App.Models"
         mc:Ignorable="d"
-        Title="Photo Renamer" Height="700" Width="1080" MinHeight="560" MinWidth="860"
-        Background="{DynamicResource WindowBackgroundBrush}">
+        Title="Photo Renamer" Height="700" Width="1080" MinHeight="560" MinWidth="860">
     <Window.Resources>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFF7F7F7" />
         <SolidColorBrush x:Key="SurfaceBrush" Color="White" />
