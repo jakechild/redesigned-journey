@@ -120,7 +120,7 @@
                               SelectedItemChanged="FolderTreeView_OnSelectedItemChanged">
                         <TreeView.Resources>
                             <HierarchicalDataTemplate DataType="{x:Type models:FolderNode}" ItemsSource="{Binding Children}">
-                                <TextBlock Text="{Binding Name}" />
+                                <TextBlock Text="{Binding Name}" Foreground="{DynamicResource PrimaryTextBrush}" />
                             </HierarchicalDataTemplate>
                         </TreeView.Resources>
                     </TreeView>
