@@ -14,6 +14,10 @@
         <SolidColorBrush x:Key="BorderBrush" Color="#FFD5D5D5" />
         <SolidColorBrush x:Key="PrimaryTextBrush" Color="#FF1F1F1F" />
         <SolidColorBrush x:Key="SecondaryTextBrush" Color="#FF5F5F5F" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#FFD5D5D5" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#FF1F1F1F" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#FFD5D5D5" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#FF1F1F1F" />
 
         <Style TargetType="GroupBox">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />

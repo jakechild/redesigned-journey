@@ -119,6 +119,10 @@ public partial class MainWindow : Window
         SetBrushColor("BorderBrush", isDarkMode ? "#FF474747" : "#FFD5D5D5");
         SetBrushColor("PrimaryTextBrush", isDarkMode ? "#FFF1F1F1" : "#FF1F1F1F");
         SetBrushColor("SecondaryTextBrush", isDarkMode ? "#FFC7C7C7" : "#FF5F5F5F");
+        SetSystemBrushColor(SystemColors.HighlightBrushKey, isDarkMode ? "#FF474747" : "#FFD5D5D5");
+        SetSystemBrushColor(SystemColors.HighlightTextBrushKey, isDarkMode ? "#FFF1F1F1" : "#FF1F1F1F");
+        SetSystemBrushColor(SystemColors.InactiveSelectionHighlightBrushKey, isDarkMode ? "#FF474747" : "#FFD5D5D5");
+        SetSystemBrushColor(SystemColors.InactiveSelectionHighlightTextBrushKey, isDarkMode ? "#FFF1F1F1" : "#FF1F1F1F");
 
         if (_windowLoaded)
         {
@@ -127,6 +131,12 @@ public partial class MainWindow : Window
     }
 
     private void SetBrushColor(string brushKey, string hexColor)
+    {
+        var color = (Color)ColorConverter.ConvertFromString(hexColor);
+        Resources[brushKey] = new SolidColorBrush(color);
+    }
+
+    private void SetSystemBrushColor(ResourceKey brushKey, string hexColor)
     {
         var color = (Color)ColorConverter.ConvertFromString(hexColor);
         Resources[brushKey] = new SolidColorBrush(color);
