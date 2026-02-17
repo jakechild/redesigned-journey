@@ -169,7 +169,7 @@
                                Stretch="Uniform"
                                Margin="6"
                                Visibility="Collapsed"
-                               Height="200"/>
+                               MaxHeight="300"/>
                     </Grid>
                 </Border>
 
