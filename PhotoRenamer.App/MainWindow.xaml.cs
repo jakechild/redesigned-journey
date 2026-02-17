@@ -472,8 +472,23 @@ public partial class MainWindow : Window
 
         if (File.Exists(destinationPath))
         {
-            StatusText.Text = "A file with that name already exists.";
-            return;
+            var uniquePath = GetUniqueFilePath(selected.DirectoryPath, safeName, selected.Extension);
+            var uniqueName = Path.GetFileNameWithoutExtension(uniquePath);
+            var confirmation = MessageBox.Show(
+                this,
+                $"A file named '{safeName}{selected.Extension}' already exists in this folder.\n\n" +
+                $"Use '{uniqueName}{selected.Extension}' instead?",
+                "Name already exists",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (confirmation != MessageBoxResult.Yes)
+            {
+                StatusText.Text = "Rename cancelled. Choose another file name.";
+                return;
+            }
+
+            destinationPath = uniquePath;
         }
 
         File.Move(selected.FullPath, destinationPath);
@@ -487,6 +502,21 @@ public partial class MainWindow : Window
 
         StatusText.Text = $"Renamed to {updated.DisplayName}";
         MoveSelectionNext();
+    }
+
+    private static string GetUniqueFilePath(string directoryPath, string requestedName, string extension)
+    {
+        var counter = 1;
+        while (true)
+        {
+            var candidatePath = Path.Combine(directoryPath, $"{requestedName} {counter}{extension}");
+            if (!File.Exists(candidatePath))
+            {
+                return candidatePath;
+            }
+
+            counter += 1;
+        }
     }
 
     private void ReplacePhotoInCollections(string oldPath, PhotoFile updated)
