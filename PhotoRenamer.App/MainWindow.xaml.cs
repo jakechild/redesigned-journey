@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     private string? _currentFolder;
     private string? _selectedFolderPath;
     private bool _windowLoaded;
+    private bool _isApplyingSystemTheme;
 
     private const int DwmUseImmersiveDarkMode = 20;
     private const int DwmCaptionColor = 35;
@@ -41,7 +42,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         Loaded += MainWindow_OnLoaded;
-        ApplyTheme(false);
+        Closed += MainWindow_OnClosed;
+        ApplySystemThemePreference();
         FileListBox.ItemsSource = _files;
         FolderTreeView.ItemsSource = _folderTree;
         FileSearchTextBox.Text = string.Empty;
@@ -51,12 +53,53 @@ public partial class MainWindow : Window
     private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
         _windowLoaded = true;
+        SystemEvents.UserPreferenceChanged += SystemEvents_OnUserPreferenceChanged;
         ApplyTitleBarTheme(DarkModeCheckBox.IsChecked == true);
     }
 
 
+    private void MainWindow_OnClosed(object? sender, EventArgs e)
+    {
+        SystemEvents.UserPreferenceChanged -= SystemEvents_OnUserPreferenceChanged;
+    }
+
+    private void SystemEvents_OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+    {
+        if (e.Category != UserPreferenceCategory.General)
+        {
+            return;
+        }
+
+        Dispatcher.Invoke(ApplySystemThemePreference);
+    }
+
+    private void ApplySystemThemePreference()
+    {
+        var prefersDarkMode = GetSystemPrefersDarkMode();
+
+        _isApplyingSystemTheme = true;
+        DarkModeCheckBox.IsChecked = prefersDarkMode;
+        _isApplyingSystemTheme = false;
+
+        ApplyTheme(prefersDarkMode);
+    }
+
+    private static bool GetSystemPrefersDarkMode()
+    {
+        const string personalizeKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+        const string appsUseLightThemeValueName = "AppsUseLightTheme";
+
+        var value = Registry.GetValue($@"HKEY_CURRENT_USER\{personalizeKeyPath}", appsUseLightThemeValueName, 1);
+        return value is int lightThemeEnabled && lightThemeEnabled == 0;
+    }
+
     private void ThemeToggleCheckBox_OnChanged(object sender, RoutedEventArgs e)
     {
+        if (_isApplyingSystemTheme)
+        {
+            return;
+        }
+
         ApplyTheme(DarkModeCheckBox.IsChecked == true);
     }
 
