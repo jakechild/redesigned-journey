@@ -387,6 +387,7 @@ public partial class MainWindow : Window
             var uniquePath = GetUniqueFilePath(selected.DirectoryPath, safeName, selected.Extension);
             var uniqueName = Path.GetFileNameWithoutExtension(uniquePath);
             var confirmation = MessageBox.Show(
+                this,
                 $"A file named '{safeName}{selected.Extension}' already exists in this folder.\n\n" +
                 $"Use '{uniqueName}{selected.Extension}' instead?",
                 "Name already exists",
